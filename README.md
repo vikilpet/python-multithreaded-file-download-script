@@ -1,14 +1,15 @@
 # Download All Files From Webpage
 
 ### Features
-- Download, print or copy found links to files.
-- Multi-threaded download.
-- Different settings (cookies, regexp) for different sites.
+- Download, print or copy found links to files
+- Multi-threaded download
+- Different settings (cookies, regexp) for different sites
 
 ### Usage
+0. Change DOWNLOAD_FOLDER variable
 1. Copy url to clipboard
 2. Run get_files.py
-3. Choose to download/print/copy links.
+3. Choose download/print/copy links
 
 ### Prerequisites
 Windows (MessageBox)
