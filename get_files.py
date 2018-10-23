@@ -28,7 +28,7 @@ except ImportError as e:
     }
 
 DEFAULT_RE = r'"([^"]+\.(?:jpg|jpeg|png|gif))"'
-THREADS_COUNT = 8
+THREADS_NUMBER = 8
 
 
 def get_domain(url):
@@ -41,10 +41,10 @@ class GetFiles():
     ''' All methods returns status (boolean) and data (error description
 		in case of error) '''
 
-    def __init__(self, url, folder, threads_count):
+    def __init__(self, url, folder, THREADS_NUMBER):
         self.msg_title = 'Get Files'
         self.page = ''
-        self.threads_count = threads_count
+        self.THREADS_NUMBER = THREADS_NUMBER
         self.url = url
         self.domain = get_domain(self.url)
         if url.find('https') == -1:
@@ -148,7 +148,7 @@ class GetFiles():
             pass
 
     def download_files(self):
-        with ThreadPool(self.threads_count) as pool:
+        with ThreadPool(self.THREADS_NUMBER) as pool:
             pool.map(self.get_file, self.urls)
 
 
@@ -159,7 +159,7 @@ def main():
         input(f'No URL found in clipboard: {url[:200]}\n\n' +
               'Press Enter to exit')
         return
-    gi = GetFiles(url=url, folder=DOWNLOAD_FOLDER, threads_count=THREADS_COUNT)
+    gi = GetFiles(url=url, folder=DOWNLOAD_FOLDER, THREADS_NUMBER=THREADS_NUMBER)
     print(f'Destination: {DOWNLOAD_FOLDER}')
     print(f'URL: {url}')
     print(f'Domain: {gi.domain}')
