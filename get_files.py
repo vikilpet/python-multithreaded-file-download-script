@@ -4,12 +4,15 @@ from time import strftime
 import os, errno
 import re
 from time import sleep
-import ctypes
-from multiprocessing.dummy import Pool as ThreadPool
+from multiprocessing import dummy
 from itertools import repeat
+import ctypes
+
 MessageBox = ctypes.windll.user32.MessageBoxW
 
 try:
+    import sys
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
     from settings import *
 except ImportError as e:
     DOWNLOAD_FOLDER = r'd:\YOUR FOLDER'
@@ -37,7 +40,7 @@ def get_domain(url):
     return d
 
 
-class GetFiles():
+class GetFiles:
     ''' All methods returns status (boolean) and data (error description
 		in case of error) '''
 
@@ -47,6 +50,7 @@ class GetFiles():
         self.THREADS_NUMBER = THREADS_NUMBER
         self.url = url
         self.domain = get_domain(self.url)
+        self.count = 0
         if url.find('https') == -1:
             self.schema = 'https://'
         else:
@@ -101,7 +105,7 @@ class GetFiles():
         else:
             return False, f'status_code: {r.status_code}'
 
-    def get_count(self):
+    def get_number(self):
         #print(f'Get files: {self.url} -> {self.path}')
         status, data = self.get_page()
         if status:
@@ -120,10 +124,10 @@ class GetFiles():
         i = 0
         # make three attempts with pause:
         while i < 3:
-            if i > 0: sleep(i * 5)
+            sleep(i * 5)
             i += 1
             r = requests.get(furl, cookies=self.cookies)
-            if r.status_code == 200: break
+            if r.status_code == 200 or r.status_code // 100 == 4: break
         if r.status_code == 200:
             try:
                 # check if we downloaded bigger version of file:
@@ -148,7 +152,7 @@ class GetFiles():
             pass
 
     def download_files(self):
-        with ThreadPool(self.THREADS_NUMBER) as pool:
+        with dummy.Pool(self.THREADS_NUMBER) as pool:
             pool.map(self.get_file, self.urls)
 
 
@@ -159,15 +163,16 @@ def main():
         input(f'No URL found in clipboard: {url[:200]}\n\n' +
               'Press Enter to exit')
         return
-    gi = GetFiles(url=url, folder=DOWNLOAD_FOLDER, THREADS_NUMBER=THREADS_NUMBER)
+    gi = GetFiles(
+        url=url, folder=DOWNLOAD_FOLDER, THREADS_NUMBER=THREADS_NUMBER)
     print(f'Destination: {DOWNLOAD_FOLDER}')
     print(f'URL: {url}')
     print(f'Domain: {gi.domain}')
     print(f'Cookies: {gi.cookies}')
     print(f'RegExp: {gi.regexp}')
-    s, d = gi.get_count()
-    if not gi.get_count():
-        print(f'get_count error: {d}')
+    s, d = gi.get_number()
+    if not gi.get_number():
+        print(f'get_number error: {d}')
         input('Press Enter to exit')
         return
     print(f'Page size: {len(gi.page)}')
@@ -188,7 +193,7 @@ def main():
     if not s:
         input(f'make_path error: {d}\n\nPress Enter to exit')
         return
-    print(f'Folder: {gi.path}')
+    print(f'Folder: {gi.path}\nDownload started with {THREADS_NUMBER} threads...')
     gi.download_files()
     MessageBox(None, f'Done:\r\n{gi.path}', gi.msg_title, 64 + 4096)
 
